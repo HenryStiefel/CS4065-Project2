@@ -5,6 +5,7 @@ from _thread import *
 import datetime
 import time
  
+# initialize server information, start the server and listen for up to 100 connections
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
  
@@ -14,24 +15,23 @@ port = 9999
 server.bind((ip, port))
 server.listen(100)
  
-# TODO: make this a dictionary, map client-given username to connection
+# we need to access these variables in all threads, so make them global
 global clients
 global messages
-clients = {}
-messages = []
+clients = {} #dictionary for storing connection:username pairs
+messages = [] #list of messages
  
 def clientthread(connection, address):
  
     # sends a message to the client connection
     connection.send("Please enter a username with the \"USERNAME [your username here]\" command.".encode())
-
-    #TODO: send the previous 2 messages
-    #TODO: send a list of other usernames
  
     while True:
             try:
+                #listen for input from the connection
                 message = connection.recv(2048).decode("UTF-8")
                 
+                #if the sending user doesn't have an actual username yet, make them get one
                 if clients[connection] == "NewUser":
                     if message.split(' ')[0] == "USERNAME":
                         message = message.split(' ')[1]
@@ -57,6 +57,7 @@ def clientthread(connection, address):
                             connection.send("That username is taken. Please try again.".encode())
                     else:
                         connection.send("Please enter a username first!".encode())
+                #user posting a new message
                 elif message.split(' ')[0] == "POST":
                     newMessage = {
                             "sender": clients[connection],
@@ -66,9 +67,10 @@ def clientthread(connection, address):
                             }
                     messages.append(newMessage)
 
-                    message_to_send = "Message ID: " + str(len(messages)) + " Sender: " + clients[connection] + " Time: " + newMessage["datetime"].strftime("%H:%M") + " Subject: " + newMessage["subject"]
-                    print(message_to_send)
+                    #broadcast the message to everyone else in the room
+                    message_to_send = "Message ID: " + str(len(messages)-1) + " Sender: " + clients[connection] + " Time: " + newMessage["datetime"].strftime("%H:%M") + " Subject: " + newMessage["subject"]
                     broadcast(message_to_send, connection)
+                #user requesting a message with an ID
                 elif message.split(' ')[0] == "MESSAGE":
                     if int(message.split(' ')[1]) < len(messages):
                         connection.send(("Content: " + messages[int(message.split(' ')[1])]["content"]).encode())
@@ -101,6 +103,7 @@ def remove(connection):
 
 def testconnections():
     while True:
+        #every 1 second, we will test every connection and make sure it is still there - if not, we can notify that it was removed from the chat room
         time.sleep(1)
         try:
             for client in clients:
@@ -114,6 +117,7 @@ def testconnections():
 start_new_thread(testconnections, ())
  
 while True:
+    #listen for connecting clients
     conn, addr = server.accept()
  
     clients[conn] = "NewUser"

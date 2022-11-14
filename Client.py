@@ -5,13 +5,10 @@ from threading import *
  
 global server
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-ip = "127.0.0.1"
-port = 9999
-global username
-username = ""
 
 def send_message():
     while True:
+        # need global stop_threads variable to stop threads blocking when main program exits
         global stop_threads
         if stop_threads:
             break
@@ -87,12 +84,11 @@ def receive_message():
             break
         try:
             # receive bytes from the server
-            # TODO: server needs to send the username as well
             message, addr = server.recvfrom(2048)
 
-            # logic for client to get username here
             if message:
-                if 'ping' not in message.decode("UTF-8"):
+                #disregard the ping sent every 1000ms testing if client still active
+                if message.decode("UTF-8") != "ping":
                     print(message.decode("UTF-8"))
         except:
             continue
