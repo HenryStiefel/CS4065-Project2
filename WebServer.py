@@ -54,7 +54,8 @@ def clientthread(connection, address):
                     # if the new connection sent a username command:
                     if message.split(' ')[0] == "USERNAME":
                         message = message.split(' ')[1]
-                        if not clients.get(message):
+                        if message not in clients.values():
+                        #if not clients.get(message):
                             clients[connection] = message
                             connection.send(("Username set successfully. Welcome, " + message).encode())
                             #broadcast the new user + username to the entire chat room
