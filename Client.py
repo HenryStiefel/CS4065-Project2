@@ -22,11 +22,16 @@ def send_message():
                 print(
                     "CONNECT [address] [port]\n" +
                     "USERNAME\n" +
-                    "JOIN [room id]\n" + 
                     "POST [subject] [content]\n" +
                     "USERS\n" +
                     "LEAVE\n" +
                     "MESSAGE [message id]\n" + 
+                    "GROUPS\n" +
+                    "GROUPJOIN [group id]\n" +
+                    "GROUPPOST [group id] [subject] [content]\n" +
+                    "GROUPUSERS [group id]\n" +
+                    "GROUPLEAVE [group id]\n" + 
+                    "GROUPMESSAGE [group id] [message id]\n" +
                     "EXIT\n"
                 )
 
@@ -48,9 +53,13 @@ def send_message():
                     print("Invalid arguments.")
 
             elif message[0] == "USERS":
-                print('.')
+                if len(message) == 1:
+                    server.send(message[0].encode())
+                else:
+                    print("Invalid arguments.")
+
             elif message[0] == "LEAVE":
-                print('.')
+                server.close()
 
             # REQUEST MESSAGE BY ID
             elif message[0] == "MESSAGE":
@@ -69,6 +78,48 @@ def send_message():
                 # encode the message and send it to the server
                 if len(message) == 2:
                     server.send(("USERNAME " + message[1]).encode())
+                else:
+                    print("Invalid arguments.")
+
+            # SEE LIST OF GROUPS
+            elif message[0] == "GROUPS":
+                if len(message) == 1:
+                    server.send(message[0].encode())
+                else:
+                    print("Invalid arguments")
+            
+            # JOIN A GROUP
+            elif message[0] == "GROUPJOIN":
+                if len(message) == 2:
+                    server.send(' '.join(message).encode())
+                else:
+                    print("Invalid arguments")
+
+            # POST TO A GROUP
+            elif message[0] == "GROUPPOST":
+                if len(message) >= 4:
+                    server.send(' '.join(message).encode())
+                else:
+                    print("Invalid arguments.")
+            
+            # SEE USERS IN A GROUP
+            elif message[0] == "GROUPUSERS":
+                if len(message) == 2:
+                    server.send(' '.join(message).encode())
+                else:
+                    print("Invalid arguments.")
+
+            # LEAVE A GROUP
+            elif message[0] == "GROUPLEAVE":
+                if len(message) == 2:
+                    server.send(' '.join(message).encode())
+                else:
+                    print("Invalid arguments.")
+
+            # SEE MESSAGE FROM GROUP
+            elif message[0] == "GROUPMESSAGE":
+                if len(message) == 3:
+                    server.send(' '.join(message).encode())
                 else:
                     print("Invalid arguments.")
 
